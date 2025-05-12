@@ -1,0 +1,27 @@
+# ─── Elm ─────────────────────────────────────────────
+frontend/elm-stuff/
+frontend/public/elm.js
+frontend/public/elm.js.map
+
+# ─── Node Modules ────────────────────────────────────
+node_modules/
+frontend/node_modules/
+
+# ─── Haskell (Cabal) ─────────────────────────────────
+backend/dist-newstyle/
+backend/cabal.project.local
+backend/cabal.project.local~  # backup file
+backend/grades.db             # local SQLite database
+
+# ─── IDE / Editor / OS ───────────────────────────────
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# ─── Parcel/Vite (if used in frontend) ───────────────
+frontend/.parcel-cache/
+frontend/dist/

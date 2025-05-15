@@ -15,9 +15,10 @@ instance ToJSON Semester
 instance FromJSON Semester
 
 data Module = Module
-  { moduleId         :: Int
-  , moduleName       :: Text
-  , moduleSemesterId :: Int
+  { moduleId          :: Int
+  , moduleName        :: Text
+  , moduleAbbrevation :: Text
+  , moduleSemesterId  :: Int
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Module

@@ -1,8 +1,9 @@
 module Main where
 
-import Models
+import Network.Wai.Handler.Warp (run)
+import Servant
 import Api
-import Database
 
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+    run 8080 $ serve api server

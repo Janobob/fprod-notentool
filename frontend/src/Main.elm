@@ -10,18 +10,31 @@ type Page =
     SemesterList SemesterList.Model
 
 type alias Model =
-    { page : Page }
+    { 
+        header : Header.Model,
+        page : Page 
+    }
 
 type Msg = 
-    SemesterListMsg SemesterList.Msg
+    HeaderMsg Header.Msg 
+    | SemesterListMsg SemesterList.Msg
 
 init : () -> (Model, Cmd Msg)
 init _ =
-    ({ page = SemesterList SemesterList.init }, Cmd.none)
+    (   
+        { 
+            header = Header.init, 
+            page = SemesterList SemesterList.init 
+        }, 
+        Cmd.none
+    )
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case (model.page, msg) of
+        (_, HeaderMsg hmsg) ->
+            ( { model | header = Header.update hmsg model.header }, Cmd.none )
+
         (SemesterList smodel, SemesterListMsg smsg) ->
             let
                 (updatedModel, cmd) =
@@ -32,8 +45,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "d-flex flex-column min-vh-100" ]
-        [ 
-            Header.view
+        [ Html.map HeaderMsg (Header.view model.header)
         , div [ class "container" ]
             [ case model.page of
                 SemesterList smodel ->

@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <title>Notentool</title>
+    <link rel="stylesheet" href="styles/bootstrap.min.css" />
   </head>
   <body>
+    <div id="app"></div>
     <script src="elm.js"></script>
     <script>
-      Elm.Main.init();
+      Elm.Main.init({ node: document.getElementById("app") });
     </script>
   </body>
 </html>

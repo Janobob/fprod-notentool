@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Html exposing (text)
+import View.Page exposing (view)
 
 main =
-    Browser.sandbox { init = (), view = \_ -> text "Notentool!", update = \_ model -> model }
+    Browser.sandbox { init = (), view = \_ -> view, update = \_ model -> model }

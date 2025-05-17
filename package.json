@@ -2,7 +2,7 @@
   "name": "fprod-notentool",
   "version": "1.0.0",
   "scripts": {
-    "start-frontend": "cd frontend && elm-live src/Main.elm --dir=public --open -- --output=public/elm.js",
+    "start-frontend": "cd frontend && elm-live src/Main.elm --dir=public --open --pushstate -- --output=public/elm.js",
     "start-backend": "cd backend && cabal build all && cabal run",
     "start": "concurrently \"npm run start-frontend\" \"npm run start-backend\""
   },

@@ -1,7 +1,8 @@
-module View.Pages.Semester.SemesterList exposing (Model, Msg, init, update, view)
+module View.Pages.Semester.SemesterList exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, div, h1, li, text, ul)
+import Html exposing (Html, div, h1, li, text, ul, button)
 import Html.Attributes exposing (class)
+import Html.Events exposing (onClick)
 import Shared.Models.Semester exposing (Semester)
 
 type alias Model
@@ -16,27 +17,32 @@ init =
     }
 
 type Msg
-    = NoOp
+    = NavigateToAdd
+    | NavigateToEdit Int
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
-        NoOp ->
+        NavigateToAdd ->
+            (model, Cmd.none)
+        NavigateToEdit id ->
             (model, Cmd.none)
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ div [ class "row" ]
-            [ div [ class "col" ]
-                [ h1 [] [ text "Semester List" ]
-                , ul []
-                    (List.map
-                        (\semester ->
-                            li [] [ text semester.name ]
-                        )
-                        model.semesters
-                    )
+    div [ class "container pt-4" ]
+        [   
+            div [ class "d-flex" ] [
+                h1 [] [ text "Semester List" ],
+                div [ class "ms-auto" ] [
+                    button [ class "btn btn-primary", onClick NavigateToAdd ] [ text "Add Semester" ]
                 ]
-            ]
+            ],
+            ul []
+                (List.map
+                    (\semester ->
+                        li [] [ text semester.name ]
+                    )
+                    model.semesters
+                )
         ]

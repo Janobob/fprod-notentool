@@ -16,10 +16,10 @@ import Shared.Models.Semester exposing (Semester)
 
 type Page =
     SemesterList SemesterList.Model
-    | SemesterAdd
+    | SemesterAdd SemesterAdd.Model
     | SemesterDetail Int
-    | SemesterEdit Int
-    | SemesterDelete Int
+    | SemesterEdit SemesterEdit.Model
+    | SemesterDelete SemesterDelete.Model
 
 type Route =
     HomeRoute
@@ -39,6 +39,9 @@ type alias Model =
 type Msg = 
     HeaderMsg Header.Msg 
     | SemesterListMsg SemesterList.Msg
+    | SemesterAddMsg SemesterAdd.Msg
+    | SemesterEditMsg SemesterEdit.Msg
+    | SemesterDeleteMsg SemesterDelete.Msg
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
 
@@ -79,9 +82,9 @@ init _ url key =
 
         SemesterAddRoute ->
             ( { header = header
-              , page = SemesterAdd
-              , navKey = key
-              }
+            , page = SemesterAdd SemesterAdd.init
+            , navKey = key
+            }
             , Cmd.none
             )
 
@@ -94,15 +97,20 @@ init _ url key =
             )
 
         SemesterEditRoute id ->
-            ( { header = header, page = SemesterEdit id, navKey = key }
-            , Cmd.none
+            let
+                (editModel, editCmd) = SemesterEdit.init id
+            in
+            ( { header = header, page = SemesterEdit editModel, navKey = key }
+            , Cmd.map SemesterEditMsg editCmd
             )
 
         SemesterDeleteRoute id ->
-            ( { header = header, page = SemesterDelete id, navKey = key }
-            , Cmd.none
+            let
+                (deleteModel, deleteCmd) = SemesterDelete.init id
+            in
+            ( { header = header, page = SemesterDelete deleteModel, navKey = key }
+            , Cmd.map SemesterDeleteMsg deleteCmd
             )
-
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -144,6 +152,56 @@ update msg model =
                 _ ->
                     (model, Cmd.none)
 
+        SemesterAddMsg SemesterAdd.Cancel ->
+            ( model
+            , Nav.pushUrl model.navKey "/semesters"
+            )
+
+        SemesterAddMsg addMsg ->
+            case model.page of
+                SemesterAdd addModel ->
+                    let
+                        (newModel, cmd) = SemesterAdd.update addMsg addModel
+                    in
+                    ( { model | page = SemesterAdd newModel }
+                    , Cmd.map SemesterAddMsg cmd
+                    )
+
+                _ ->
+                    (model, Cmd.none)
+
+        SemesterEditMsg SemesterEdit.Cancel ->
+            (model, Nav.pushUrl model.navKey "/semesters")
+
+        SemesterEditMsg subMsg ->
+            case model.page of
+                SemesterEdit editModel ->
+                    let
+                        (newModel, cmd) = SemesterEdit.update subMsg editModel
+                    in
+                    ( { model | page = SemesterEdit newModel }
+                    , Cmd.map SemesterEditMsg cmd
+                    )
+
+                _ ->
+                    (model, Cmd.none)
+
+        SemesterDeleteMsg SemesterDelete.Cancel ->
+            (model, Nav.pushUrl model.navKey "/semesters")
+
+        SemesterDeleteMsg subMsg ->
+            case model.page of
+                SemesterDelete deleteModel ->
+                    let
+                        (newModel, cmd) = SemesterDelete.update subMsg deleteModel
+                    in
+                    ( { model | page = SemesterDelete newModel }
+                    , Cmd.map SemesterDeleteMsg cmd
+                    )
+
+                _ ->
+                    (model, Cmd.none)
+
         LinkClicked req ->
             case req of
                 Browser.Internal url ->
@@ -161,16 +219,26 @@ update msg model =
                     ( { model | page = SemesterList SemesterList.init }, Cmd.none )
 
                 Just SemesterAddRoute ->
-                    ( { model | page = SemesterAdd }, Cmd.none )
+                    ( { model | page = SemesterAdd SemesterAdd.init }, Cmd.none )
 
                 Just (SemesterDetailRoute id) ->
                     ( { model | page = SemesterDetail id }, Cmd.none )
 
                 Just (SemesterEditRoute id) ->
-                    ( { model | page = SemesterEdit id }, Cmd.none )
+                    let
+                        (editModel, editCmd) = SemesterEdit.init id
+                    in
+                    ( { model | page = SemesterEdit editModel }
+                    , Cmd.map SemesterEditMsg editCmd
+                    )
 
                 Just (SemesterDeleteRoute id) ->
-                    ( { model | page = SemesterDelete id }, Cmd.none )
+                    let
+                        (deleteModel, deleteCmd) = SemesterDelete.init id
+                    in
+                    ( { model | page = SemesterDelete deleteModel }
+                    , Cmd.map SemesterDeleteMsg deleteCmd
+                    )
 
                 Nothing ->
                     (model, Cmd.none)
@@ -182,16 +250,16 @@ view model =
         [ Html.map HeaderMsg (Header.view model.header)
         , div [ class "container" ]
             [ case model.page of
-                SemesterList smodel ->
-                    Html.map SemesterListMsg (SemesterList.view smodel)
-                SemesterAdd ->
-                    SemesterAdd.view
+                SemesterList listModel ->
+                    Html.map SemesterListMsg (SemesterList.view listModel)
+                SemesterAdd addModel ->
+                    Html.map SemesterAddMsg (SemesterAdd.view addModel)
                 SemesterDetail id ->
                     SemesterDetail.view id
-                SemesterEdit id ->
-                    SemesterEdit.view id
-                SemesterDelete id ->
-                    SemesterDelete.view id
+                SemesterEdit editModel ->
+                    Html.map SemesterEditMsg (SemesterEdit.view editModel)
+                SemesterDelete deleteModel ->
+                    Html.map SemesterDeleteMsg (SemesterDelete.view deleteModel)
             ]
         ]
     }

@@ -42,6 +42,7 @@ view model =
                     , id "navbarNav" ]
                 [ ul [ class "navbar-nav" ]
                     [ li [ class "nav-item" ]
+                        -- todo: add route with msg
                         [ a [ class "nav-link active", href "/" ]
                             [ text "Home" ]
                         ]

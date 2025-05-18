@@ -3,22 +3,31 @@ module Main exposing (main)
 import Browser
 import Browser.Navigation as Nav
 import Url exposing (Url)
-import Url.Parser exposing (Parser, (</>), s, top, parse, map, oneOf)
+import Url.Parser exposing (Parser, (</>), s, top, parse, map, oneOf, int)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import View.Layout.Header as Header
 import View.Pages.Semester.SemesterList as SemesterList
 import View.Pages.Semester.SemesterAdd as SemesterAdd
+import View.Pages.Semester.SemesterDetail as SemesterDetail
+import View.Pages.Semester.SemesterEdit as SemesterEdit
+import View.Pages.Semester.SemesterDelete as SemesterDelete
 import Shared.Models.Semester exposing (Semester)
 
 type Page =
     SemesterList SemesterList.Model
     | SemesterAdd
+    | SemesterDetail Int
+    | SemesterEdit Int
+    | SemesterDelete Int
 
 type Route =
     HomeRoute
     | SemesterListRoute
     | SemesterAddRoute
+    | SemesterDetailRoute Int
+    | SemesterEditRoute Int
+    | SemesterDeleteRoute Int
 
 type alias Model =
     { 
@@ -32,6 +41,18 @@ type Msg =
     | SemesterListMsg SemesterList.Msg
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
+
+routeParser : Parser (Route -> a) a
+routeParser =
+    oneOf
+        [ s "semesters" |> map SemesterListRoute
+        , s "semesters" </> s "add" |> map SemesterAddRoute
+        , s "semesters" </> s "edit" </> int |> map SemesterEditRoute
+        , s "semesters" </> s "delete" </> int |> map SemesterDeleteRoute
+        , s "semesters" </> int |> map SemesterDetailRoute
+        , top |> map HomeRoute
+        ]
+
 
 init : () -> Url -> Nav.Key -> (Model, Cmd Msg)
 init _ url key =
@@ -64,6 +85,25 @@ init _ url key =
             , Cmd.none
             )
 
+        SemesterDetailRoute id ->
+            ( { header = header
+              , page = SemesterDetail id
+              , navKey = key
+              }
+            , Cmd.none
+            )
+
+        SemesterEditRoute id ->
+            ( { header = header, page = SemesterEdit id, navKey = key }
+            , Cmd.none
+            )
+
+        SemesterDeleteRoute id ->
+            ( { header = header, page = SemesterDelete id, navKey = key }
+            , Cmd.none
+            )
+
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
@@ -73,6 +113,21 @@ update msg model =
         SemesterListMsg SemesterList.NavigateToAdd ->
             ( model
             , Nav.pushUrl model.navKey "/semesters/add"
+            )
+        
+        SemesterListMsg (SemesterList.NavigateToDetail id) ->
+            ( model
+            , Nav.pushUrl model.navKey ("/semesters/" ++ String.fromInt id)
+            )
+
+        SemesterListMsg (SemesterList.NavigateToEdit id) ->
+            ( model
+            , Nav.pushUrl model.navKey ("/semesters/" ++ "edit/" ++ String.fromInt id )
+            )
+
+        SemesterListMsg (SemesterList.NavigateToDelete id) ->
+            ( model
+            , Nav.pushUrl model.navKey ("/semesters/" ++ "delete/" ++ String.fromInt id )
             )
 
         SemesterListMsg smsg ->
@@ -108,6 +163,15 @@ update msg model =
                 Just SemesterAddRoute ->
                     ( { model | page = SemesterAdd }, Cmd.none )
 
+                Just (SemesterDetailRoute id) ->
+                    ( { model | page = SemesterDetail id }, Cmd.none )
+
+                Just (SemesterEditRoute id) ->
+                    ( { model | page = SemesterEdit id }, Cmd.none )
+
+                Just (SemesterDeleteRoute id) ->
+                    ( { model | page = SemesterDelete id }, Cmd.none )
+
                 Nothing ->
                     (model, Cmd.none)
 
@@ -122,17 +186,15 @@ view model =
                     Html.map SemesterListMsg (SemesterList.view smodel)
                 SemesterAdd ->
                     SemesterAdd.view
+                SemesterDetail id ->
+                    SemesterDetail.view id
+                SemesterEdit id ->
+                    SemesterEdit.view id
+                SemesterDelete id ->
+                    SemesterDelete.view id
             ]
         ]
     }
-
-routeParser : Parser (Route -> a) a
-routeParser =
-    oneOf
-        [ top |> map HomeRoute
-        , s "semesters" |> map SemesterListRoute
-        , s "semesters" </> s "add" |> map SemesterAddRoute
-        ]
 
 main : Program () Model Msg
 main =

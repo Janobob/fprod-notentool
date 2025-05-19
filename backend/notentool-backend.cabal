@@ -74,9 +74,14 @@ executable notentool-backend
         warp,
         aeson,
         text,
-        sqlite-simple,
         bytestring,
-        containers,
+        containers
+        , persistent
+        , persistent-sqlite
+        , persistent-template
+        , mtl
+        , monad-logger
+        , resource-pool
 
     -- Directories containing source files.
     hs-source-dirs:   app, src

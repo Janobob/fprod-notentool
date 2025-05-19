@@ -65,19 +65,28 @@ init _ url key =
     in
     case route of
         HomeRoute ->
+            let
+                (listModel, listCmd) = SemesterList.init
+            in
             ( { header = header
-              , page = SemesterList SemesterList.init
-              , navKey = key
-              }
-            , Nav.pushUrl key "/semesters"
+            , page = SemesterList listModel
+            , navKey = key
+            }
+            , Cmd.batch
+                [ Cmd.map SemesterListMsg listCmd
+                , Nav.pushUrl key "/semesters"
+                ]
             )
 
         SemesterListRoute ->
+            let
+                (listModel, listCmd) = SemesterList.init
+            in
             ( { header = header
-              , page = SemesterList SemesterList.init
-              , navKey = key
-              }
-            , Cmd.none
+            , page = SemesterList listModel
+            , navKey = key
+            }
+            , Cmd.map SemesterListMsg listCmd
             )
 
         SemesterAddRoute ->
@@ -213,10 +222,20 @@ update msg model =
         UrlChanged url ->
             case parse routeParser url of
                 Just HomeRoute ->
-                    ( { model | page = SemesterList SemesterList.init }, Cmd.none )
+                    let
+                        (listModel, listCmd) = SemesterList.init
+                    in
+                    ( { model | page = SemesterList listModel }
+                    , Cmd.map SemesterListMsg listCmd
+                    )
 
                 Just SemesterListRoute ->
-                    ( { model | page = SemesterList SemesterList.init }, Cmd.none )
+                    let
+                        (listModel, listCmd) = SemesterList.init
+                    in
+                    ( { model | page = SemesterList listModel }
+                    , Cmd.map SemesterListMsg listCmd
+                    )
 
                 Just SemesterAddRoute ->
                     ( { model | page = SemesterAdd SemesterAdd.init }, Cmd.none )

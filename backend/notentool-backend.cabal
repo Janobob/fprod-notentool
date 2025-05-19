@@ -82,6 +82,8 @@ executable notentool-backend
         , mtl
         , monad-logger
         , resource-pool
+        , wai
+        , wai-cors
 
     -- Directories containing source files.
     hs-source-dirs:   app, src

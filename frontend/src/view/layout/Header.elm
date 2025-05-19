@@ -27,7 +27,7 @@ view model =
     header [ ]
         [ nav [ class "navbar navbar-expand-lg bg-primary" ]
         [ div [ class "container-fluid" ]
-            [ a [ class "navbar-brand", href "#" ] [ text "Notentool" ]
+            [ a [ class "navbar-brand", href "/" ] [ text "Notentool" ]
             , button
                 [ class "navbar-toggler"
                 , type_ "button"
@@ -42,7 +42,8 @@ view model =
                     , id "navbarNav" ]
                 [ ul [ class "navbar-nav" ]
                     [ li [ class "nav-item" ]
-                        [ a [ class "nav-link active", href "#" ]
+                        -- todo: add route with msg
+                        [ a [ class "nav-link active", href "/" ]
                             [ text "Home" ]
                         ]
                     ]

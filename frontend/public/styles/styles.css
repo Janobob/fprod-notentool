@@ -1,0 +1,17 @@
+.semester-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+  position: relative;
+}
+
+.semester-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.semester-card .d-hover-flex {
+  display: none;
+}
+
+.semester-card:hover .d-hover-flex {
+  display: flex;
+}

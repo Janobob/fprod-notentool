@@ -12,36 +12,40 @@ module Database.Module
 import Database.Persist
 import Models
 import Database.Core (DbPool, runDB)
+import Database.Persist.Sql (toSqlKey, SqlBackend)
+import Data.Int (Int64)
 
 getModules :: DbPool -> IO [Module]
 getModules pool = runDB pool $ do
     entities <- selectList [] []
     return $ map entityVal entities
 
-getModuleById :: DbPool -> Int -> IO (Maybe Module)
+getModuleById :: DbPool -> Int64 -> IO (Maybe Module)
 getModuleById pool mid = runDB pool $ do
-    entity <- getBy $ UniqueModuleId mid
-    return $ fmap entityVal entity
+    let key = toSqlKey mid :: Key Module
+    get key
 
 createModule :: DbPool -> Module -> IO Module
 createModule pool module' = runDB pool $ do
     _ <- insert module'
     return module'
 
-updateModule :: DbPool -> Int -> Module -> IO Module
+updateModule :: DbPool -> Int64 -> Module -> IO Module
 updateModule pool mid module' = runDB pool $ do
-    _ <- updateWhere [ModuleModuleId ==. mid]
-                    [ ModuleModuleName =. moduleModuleName module'
-                    , ModuleModuleAbbrevation =. moduleModuleAbbrevation module'
-                    , ModuleModuleSemesterId =. moduleModuleSemesterId module'
-                    ]
+    let moduleKey = toSqlKey mid :: Key Module
+    update moduleKey
+           [ ModuleName =. moduleName module'
+           , ModuleAbbrevation =. moduleAbbrevation module'
+           , ModuleSemesterId =. moduleSemesterId module'
+           ]
     return module'
 
-deleteModule :: DbPool -> Int -> IO ()
-deleteModule pool mid = runDB pool $
-    deleteWhere [ModuleModuleId ==. mid]
+deleteModule :: DbPool -> Int64 -> IO ()
+deleteModule pool mid = runDB pool $ do
+    let moduleKey = toSqlKey mid :: Key Module
+    delete moduleKey
 
-getExamsForModule :: DbPool -> Int -> IO [Exam]
+getExamsForModule :: DbPool -> Int64 -> IO [Exam]
 getExamsForModule pool mid = runDB pool $ do
-    entities <- selectList [ExamExamModuleId ==. mid] []
+    entities <- selectList [ExamModuleId ==. fromIntegral mid] []
     return $ map entityVal entities

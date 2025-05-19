@@ -10,6 +10,7 @@ import Models
 import Database.Core (DbPool)
 import Database.Semester
 import Api.Types (SemesterAPI)
+import Data.Int (Int64)
 
 semesterHandlers :: DbPool -> Server SemesterAPI
 semesterHandlers pool = 
@@ -23,23 +24,23 @@ semesterHandlers pool =
     getSemestersHandler :: Handler [Semester]
     getSemestersHandler = liftIO $ getSemesters pool
 
-    getSemesterHandler :: Int -> Handler Semester
+    getSemesterHandler :: Int64 -> Handler Semester
     getSemesterHandler sid = do
         maybeSemester <- liftIO $ getSemesterById pool sid
         case maybeSemester of
             Just semester -> return semester
             Nothing -> throwError err404
 
-    getModulesForSemesterHandler :: Int -> Handler [Module]
+    getModulesForSemesterHandler :: Int64 -> Handler [Module]
     getModulesForSemesterHandler sid = liftIO $ getModulesForSemester pool sid
 
     createSemesterHandler :: Semester -> Handler Semester
     createSemesterHandler semester = liftIO $ createSemester pool semester
 
-    updateSemesterHandler :: Int -> Semester -> Handler Semester
+    updateSemesterHandler :: Int64 -> Semester -> Handler Semester
     updateSemesterHandler sid semester = liftIO $ updateSemester pool sid semester
 
-    deleteSemesterHandler :: Int -> Handler NoContent
+    deleteSemesterHandler :: Int64 -> Handler NoContent
     deleteSemesterHandler sid = do
         liftIO $ deleteSemester pool sid
         return NoContent

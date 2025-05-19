@@ -12,33 +12,37 @@ module Database.Semester
 import Database.Persist
 import Models
 import Database.Core (DbPool, runDB)
+import Database.Persist.Sql (toSqlKey, SqlBackend)
+import Data.Int (Int64)
 
 getSemesters :: DbPool -> IO [Semester]
 getSemesters pool = runDB pool $ do
     entities <- selectList [] []
     return $ map entityVal entities
 
-getSemesterById :: DbPool -> Int -> IO (Maybe Semester)
+getSemesterById :: DbPool -> Int64 -> IO (Maybe Semester)
 getSemesterById pool sid = runDB pool $ do
-    entity <- getBy $ UniqueSemesterId sid
-    return $ fmap entityVal entity
+    let key = toSqlKey sid :: Key Semester
+    get key
 
 createSemester :: DbPool -> Semester -> IO Semester
 createSemester pool semester = runDB pool $ do
     _ <- insert semester
     return semester
 
-updateSemester :: DbPool -> Int -> Semester -> IO Semester
+updateSemester :: DbPool -> Int64 -> Semester -> IO Semester
 updateSemester pool sid semester = runDB pool $ do
-    _ <- updateWhere [SemesterSemesterId ==. sid] 
-                    [SemesterSemesterName =. semesterSemesterName semester]
+    let semesterKey = toSqlKey sid :: Key Semester
+    update semesterKey
+           [SemesterName =. semesterName semester]
     return semester
 
-deleteSemester :: DbPool -> Int -> IO ()
-deleteSemester pool sid = runDB pool $ 
-    deleteWhere [SemesterSemesterId ==. sid]
+deleteSemester :: DbPool -> Int64 -> IO ()
+deleteSemester pool sid = runDB pool $ do
+    let semesterKey = toSqlKey sid :: Key Semester
+    delete semesterKey
 
-getModulesForSemester :: DbPool -> Int -> IO [Module]
+getModulesForSemester :: DbPool -> Int64 -> IO [Module]
 getModulesForSemester pool sid = runDB pool $ do
-    entities <- selectList [ModuleModuleSemesterId ==. sid] []
+    entities <- selectList [ModuleSemesterId ==. fromIntegral sid] []
     return $ map entityVal entities

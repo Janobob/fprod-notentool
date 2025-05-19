@@ -10,6 +10,7 @@ import Models
 import Database.Core (DbPool)
 import Database.Exam
 import Api.Types (ExamAPI)
+import Data.Int (Int64)
 
 examHandlers :: DbPool -> Server ExamAPI
 examHandlers pool = 
@@ -22,7 +23,7 @@ examHandlers pool =
     getExamsHandler :: Handler [Exam]
     getExamsHandler = liftIO $ getExams pool
 
-    getExamHandler :: Int -> Handler Exam
+    getExamHandler :: Int64 -> Handler Exam
     getExamHandler eid = do
         maybeExam <- liftIO $ getExamById pool eid
         case maybeExam of
@@ -32,10 +33,10 @@ examHandlers pool =
     createExamHandler :: Exam -> Handler Exam
     createExamHandler exam = liftIO $ createExam pool exam
 
-    updateExamHandler :: Int -> Exam -> Handler Exam
+    updateExamHandler :: Int64 -> Exam -> Handler Exam
     updateExamHandler eid exam = liftIO $ updateExam pool eid exam
 
-    deleteExamHandler :: Int -> Handler NoContent
+    deleteExamHandler :: Int64 -> Handler NoContent
     deleteExamHandler eid = do
         liftIO $ deleteExam pool eid
         return NoContent

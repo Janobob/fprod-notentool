@@ -11,6 +11,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Models where
 
@@ -21,26 +22,20 @@ import Data.Aeson (ToJSON, FromJSON)
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Semester
-    semesterId Int
-    semesterName Text
-    UniqueSemesterId semesterId
+    name Text
     deriving Show Generic
 
 Module
-    moduleId Int
-    moduleName Text
-    moduleAbbrevation Text
-    moduleSemesterId Int
-    UniqueModuleId moduleId
+    name Text
+    abbrevation Text
+    semesterId Int
     deriving Show Generic
 
 Exam
-    examId Int
-    examName Text
-    examGrade Double
-    examWeight Double
-    examModuleId Int
-    UniqueExamId examId
+    name Text
+    grade Double
+    weight Double
+    moduleId Int
     deriving Show Generic
 |]
 

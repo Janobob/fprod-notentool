@@ -10,6 +10,7 @@ import Models
 import Database.Core (DbPool)
 import Database.Module
 import Api.Types (ModuleAPI)
+import Data.Int (Int64)
 
 moduleHandlers :: DbPool -> Server ModuleAPI
 moduleHandlers pool = 
@@ -23,23 +24,23 @@ moduleHandlers pool =
     getModulesHandler :: Handler [Module]
     getModulesHandler = liftIO $ getModules pool
 
-    getModuleHandler :: Int -> Handler Module
+    getModuleHandler :: Int64 -> Handler Module
     getModuleHandler mid = do
         maybeModule <- liftIO $ getModuleById pool mid
         case maybeModule of
             Just module' -> return module'
             Nothing -> throwError err404
 
-    getExamsForModuleHandler :: Int -> Handler [Exam]
+    getExamsForModuleHandler :: Int64 -> Handler [Exam]
     getExamsForModuleHandler mid = liftIO $ getExamsForModule pool mid
 
     createModuleHandler :: Module -> Handler Module
     createModuleHandler module' = liftIO $ createModule pool module'
 
-    updateModuleHandler :: Int -> Module -> Handler Module
+    updateModuleHandler :: Int64 -> Module -> Handler Module
     updateModuleHandler mid module' = liftIO $ updateModule pool mid module'
 
-    deleteModuleHandler :: Int -> Handler NoContent
+    deleteModuleHandler :: Int64 -> Handler NoContent
     deleteModuleHandler mid = do
         liftIO $ deleteModule pool mid
         return NoContent

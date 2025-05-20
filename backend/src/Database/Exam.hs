@@ -11,7 +11,7 @@ module Database.Exam
 import Database.Persist
 import Models
 import Database.Core (DbPool, runDB)
-import Database.Persist.Sql (toSqlKey, SqlBackend)
+import Database.Persist.Sql (toSqlKey)
 import Data.Int (Int64)
 
 getExams :: DbPool -> IO [Exam]

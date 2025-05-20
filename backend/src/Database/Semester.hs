@@ -12,7 +12,7 @@ module Database.Semester
 import Database.Persist
 import Models
 import Database.Core (DbPool, runDB)
-import Database.Persist.Sql (toSqlKey, SqlBackend, fromSqlKey)
+import Database.Persist.Sql (toSqlKey, fromSqlKey)
 import Data.Int (Int64)
 
 getSemesters :: DbPool -> IO [SemesterResponse]

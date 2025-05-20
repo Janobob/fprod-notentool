@@ -29,14 +29,14 @@ getSemesterById pool sid = runDB pool $ do
 createSemester :: DbPool -> Semester -> IO SemesterResponse
 createSemester pool semester = runDB pool $ do
     key <- insert semester
-    return $ SemesterResponse (fromSqlKey key) (semesterName semester)
+    return $ MkSemesterResponse (fromSqlKey key) (semesterName semester)
 
 updateSemester :: DbPool -> Int64 -> Semester -> IO SemesterResponse
 updateSemester pool sid semester = runDB pool $ do
     let semesterKey = toSqlKey sid :: Key Semester
     update semesterKey
            [SemesterName =. semesterName semester]
-    return $ SemesterResponse sid (semesterName semester)
+    return $ MkSemesterResponse sid (semesterName semester)
 
 deleteSemester :: DbPool -> Int64 -> IO ()
 deleteSemester pool sid = runDB pool $ do

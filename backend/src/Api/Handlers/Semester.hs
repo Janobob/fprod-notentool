@@ -30,7 +30,7 @@ semesterHandlers pool =
             Nothing -> throwError err404
 
     getModulesForSemesterHandler :: Int64 -> Handler [Module]
-    getModulesForSemesterHandler sid = liftIO $ getModulesForSemester pool sidy
+    getModulesForSemesterHandler sid = liftIO $ getModulesForSemester pool sid
 
     createSemesterHandler :: Semester -> Handler SemesterResponse
     createSemesterHandler semester = liftIO $ createSemester pool semester

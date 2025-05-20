@@ -51,7 +51,7 @@ instance FromJSON Module
 instance ToJSON Exam
 instance FromJSON Exam
 
-data SemesterResponse = SemesterResponse
+data SemesterResponse = MkSemesterResponse
     { id :: Int64
     , name :: Text
     } deriving (Show, Generic)
@@ -60,7 +60,7 @@ instance ToJSON SemesterResponse
 instance FromJSON SemesterResponse
 
 toSemesterResponse :: Entity Semester -> SemesterResponse
-toSemesterResponse (Entity key val) = SemesterResponse
+toSemesterResponse (Entity key val) = MkSemesterResponse
     { id = fromSqlKey key
     , name = semesterName val
     }

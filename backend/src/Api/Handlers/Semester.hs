@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Api.Handlers.Semester
     ( semesterHandlers
     ) where
@@ -21,10 +19,10 @@ semesterHandlers pool =
     :<|> updateSemesterHandler
     :<|> deleteSemesterHandler
   where
-    getSemestersHandler :: Handler [Semester]
+    getSemestersHandler :: Handler [SemesterResponse]
     getSemestersHandler = liftIO $ getSemesters pool
 
-    getSemesterHandler :: Int64 -> Handler Semester
+    getSemesterHandler :: Int64 -> Handler SemesterResponse
     getSemesterHandler sid = do
         maybeSemester <- liftIO $ getSemesterById pool sid
         case maybeSemester of
@@ -32,12 +30,12 @@ semesterHandlers pool =
             Nothing -> throwError err404
 
     getModulesForSemesterHandler :: Int64 -> Handler [Module]
-    getModulesForSemesterHandler sid = liftIO $ getModulesForSemester pool sid
+    getModulesForSemesterHandler sid = liftIO $ getModulesForSemester pool sidy
 
-    createSemesterHandler :: Semester -> Handler Semester
+    createSemesterHandler :: Semester -> Handler SemesterResponse
     createSemesterHandler semester = liftIO $ createSemester pool semester
 
-    updateSemesterHandler :: Int64 -> Semester -> Handler Semester
+    updateSemesterHandler :: Int64 -> Semester -> Handler SemesterResponse
     updateSemesterHandler sid semester = liftIO $ updateSemester pool sid semester
 
     deleteSemesterHandler :: Int64 -> Handler NoContent

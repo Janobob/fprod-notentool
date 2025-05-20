@@ -14,11 +14,11 @@ type API = "api" :> (
     )
 
 type SemesterAPI = 
-        "semesters" :> Get '[JSON] [Semester]
-        :<|> "semesters" :> Capture "semesterId" Int64 :> Get '[JSON] Semester
+        "semesters" :> Get '[JSON] [SemesterResponse]
+        :<|> "semesters" :> Capture "semesterId" Int64 :> Get '[JSON] SemesterResponse
         :<|> "semesters" :> Capture "semesterId" Int64 :> "modules" :> Get '[JSON] [Module]
-        :<|> "semesters" :> ReqBody '[JSON] Semester :> Post '[JSON] Semester
-        :<|> "semesters" :> Capture "semesterId" Int64 :> ReqBody '[JSON] Semester :> Put '[JSON] Semester
+        :<|> "semesters" :> ReqBody '[JSON] Semester :> Post '[JSON] SemesterResponse
+        :<|> "semesters" :> Capture "semesterId" Int64 :> ReqBody '[JSON] Semester :> Put '[JSON] SemesterResponse
         :<|> "semesters" :> Capture "semesterId" Int64 :> Delete '[JSON] NoContent
 
 type ModuleAPI = 

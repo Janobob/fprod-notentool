@@ -19,6 +19,9 @@ import Database.Persist.TH
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import Data.Aeson (ToJSON, FromJSON)
+import Data.Int (Int64)
+import Database.Persist (Entity(..))
+import Database.Persist.Sql (fromSqlKey)
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Semester
@@ -47,3 +50,17 @@ instance FromJSON Module
 
 instance ToJSON Exam
 instance FromJSON Exam
+
+data SemesterResponse = SemesterResponse
+    { id :: Int64
+    , name :: Text
+    } deriving (Show, Generic)
+
+instance ToJSON SemesterResponse
+instance FromJSON SemesterResponse
+
+toSemesterResponse :: Entity Semester -> SemesterResponse
+toSemesterResponse (Entity key val) = SemesterResponse
+    { id = fromSqlKey key
+    , name = semesterName val
+    }

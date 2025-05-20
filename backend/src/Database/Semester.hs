@@ -29,21 +29,27 @@ getSemesterById pool sid = runDB pool $ do
 createSemester :: DbPool -> Semester -> IO SemesterResponse
 createSemester pool semester = runDB pool $ do
     key <- insert semester
-    return $ MkSemesterResponse (fromSqlKey key) (semesterName semester)
+    return $ MkSemesterResponse
+        { semester_id = fromSqlKey key
+        , semester_name = semesterName semester
+        }
 
 updateSemester :: DbPool -> Int64 -> Semester -> IO SemesterResponse
 updateSemester pool sid semester = runDB pool $ do
     let semesterKey = toSqlKey sid :: Key Semester
     update semesterKey
            [SemesterName =. semesterName semester]
-    return $ MkSemesterResponse sid (semesterName semester)
+    return $ MkSemesterResponse
+        { semester_id = sid
+        , semester_name = semesterName semester
+        }
 
 deleteSemester :: DbPool -> Int64 -> IO ()
 deleteSemester pool sid = runDB pool $ do
     let semesterKey = toSqlKey sid :: Key Semester
     delete semesterKey
 
-getModulesForSemester :: DbPool -> Int64 -> IO [Module]
+getModulesForSemester :: DbPool -> Int64 -> IO [ModuleResponse]
 getModulesForSemester pool sid = runDB pool $ do
     entities <- selectList [ModuleSemesterId ==. fromIntegral sid] []
-    return $ map entityVal entities
+    return $ map toModuleResponse entities

@@ -21,23 +21,23 @@ moduleHandlers pool =
     :<|> updateModuleHandler
     :<|> deleteModuleHandler
   where
-    getModulesHandler :: Handler [Module]
+    getModulesHandler :: Handler [ModuleResponse]
     getModulesHandler = liftIO $ getModules pool
 
-    getModuleHandler :: Int64 -> Handler Module
+    getModuleHandler :: Int64 -> Handler ModuleResponse
     getModuleHandler mid = do
         maybeModule <- liftIO $ getModuleById pool mid
         case maybeModule of
             Just module' -> return module'
             Nothing -> throwError err404
 
-    getExamsForModuleHandler :: Int64 -> Handler [Exam]
+    getExamsForModuleHandler :: Int64 -> Handler [ExamResponse]
     getExamsForModuleHandler mid = liftIO $ getExamsForModule pool mid
 
-    createModuleHandler :: Module -> Handler Module
+    createModuleHandler :: Module -> Handler ModuleResponse
     createModuleHandler module' = liftIO $ createModule pool module'
 
-    updateModuleHandler :: Int64 -> Module -> Handler Module
+    updateModuleHandler :: Int64 -> Module -> Handler ModuleResponse
     updateModuleHandler mid module' = liftIO $ updateModule pool mid module'
 
     deleteModuleHandler :: Int64 -> Handler NoContent

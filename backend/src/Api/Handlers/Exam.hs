@@ -20,20 +20,20 @@ examHandlers pool =
     :<|> updateExamHandler
     :<|> deleteExamHandler
   where
-    getExamsHandler :: Handler [Exam]
+    getExamsHandler :: Handler [ExamResponse]
     getExamsHandler = liftIO $ getExams pool
 
-    getExamHandler :: Int64 -> Handler Exam
+    getExamHandler :: Int64 -> Handler ExamResponse
     getExamHandler eid = do
         maybeExam <- liftIO $ getExamById pool eid
         case maybeExam of
             Just exam -> return exam
             Nothing -> throwError err404
 
-    createExamHandler :: Exam -> Handler Exam
+    createExamHandler :: Exam -> Handler ExamResponse
     createExamHandler exam = liftIO $ createExam pool exam
 
-    updateExamHandler :: Int64 -> Exam -> Handler Exam
+    updateExamHandler :: Int64 -> Exam -> Handler ExamResponse
     updateExamHandler eid exam = liftIO $ updateExam pool eid exam
 
     deleteExamHandler :: Int64 -> Handler NoContent

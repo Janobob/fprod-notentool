@@ -12,25 +12,31 @@ module Database.Module
 import Database.Persist
 import Models
 import Database.Core (DbPool, runDB)
-import Database.Persist.Sql (toSqlKey)
+import Database.Persist.Sql (toSqlKey, fromSqlKey)
 import Data.Int (Int64)
 
-getModules :: DbPool -> IO [Module]
+getModules :: DbPool -> IO [ModuleResponse]
 getModules pool = runDB pool $ do
     entities <- selectList [] []
-    return $ map entityVal entities
+    return $ map toModuleResponse entities
 
-getModuleById :: DbPool -> Int64 -> IO (Maybe Module)
+getModuleById :: DbPool -> Int64 -> IO (Maybe ModuleResponse)
 getModuleById pool mid = runDB pool $ do
     let key = toSqlKey mid :: Key Module
-    get key
+    maybeEntity <- getEntity key
+    return $ fmap toModuleResponse maybeEntity
 
-createModule :: DbPool -> Module -> IO Module
+createModule :: DbPool -> Module -> IO ModuleResponse
 createModule pool module' = runDB pool $ do
-    _ <- insert module'
-    return module'
+    key <- insert module'
+    return $ MkModuleResponse
+        { module_id = fromSqlKey key
+        , module_name = moduleName module'
+        , module_abbrevation = moduleAbbrevation module'
+        , module_semesterId = fromIntegral $ moduleSemesterId module'
+        }
 
-updateModule :: DbPool -> Int64 -> Module -> IO Module
+updateModule :: DbPool -> Int64 -> Module -> IO ModuleResponse
 updateModule pool mid module' = runDB pool $ do
     let moduleKey = toSqlKey mid :: Key Module
     update moduleKey
@@ -38,14 +44,19 @@ updateModule pool mid module' = runDB pool $ do
            , ModuleAbbrevation =. moduleAbbrevation module'
            , ModuleSemesterId =. moduleSemesterId module'
            ]
-    return module'
+    return $ MkModuleResponse 
+        { module_id = mid
+        , module_name = moduleName module'
+        , module_abbrevation = moduleAbbrevation module'
+        , module_semesterId = fromIntegral $ moduleSemesterId module'
+        }
 
 deleteModule :: DbPool -> Int64 -> IO ()
 deleteModule pool mid = runDB pool $ do
     let moduleKey = toSqlKey mid :: Key Module
     delete moduleKey
 
-getExamsForModule :: DbPool -> Int64 -> IO [Exam]
+getExamsForModule :: DbPool -> Int64 -> IO [ExamResponse]
 getExamsForModule pool mid = runDB pool $ do
     entities <- selectList [ExamModuleId ==. fromIntegral mid] []
-    return $ map entityVal entities
+    return $ map toExamResponse entities

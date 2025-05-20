@@ -53,8 +53,8 @@ instance FromJSON Exam
 
 -- Semester Response
 data SemesterResponse = MkSemesterResponse
-    { id :: Int64
-    , name :: Text
+    { semester_id :: Int64
+    , semester_name :: Text
     } deriving (Show, Generic)
 
 instance ToJSON SemesterResponse
@@ -62,16 +62,16 @@ instance FromJSON SemesterResponse
 
 toSemesterResponse :: Entity Semester -> SemesterResponse
 toSemesterResponse (Entity key val) = MkSemesterResponse
-    { id = fromSqlKey key
-    , name = semesterName val
+    { semester_id = fromSqlKey key
+    , semester_name = semesterName val
     }
 
 -- Module Response
 data ModuleResponse = MkModuleResponse
-    { id :: Int64
-    , name :: Text
-    , abbrevation :: Text
-    , semesterId :: Int64
+    { module_id :: Int64
+    , module_name :: Text
+    , module_abbrevation :: Text
+    , module_semesterId :: Int64
     } deriving (Show, Generic)
 
 instance ToJSON ModuleResponse
@@ -79,19 +79,19 @@ instance FromJSON ModuleResponse
 
 toModuleResponse :: Entity Module -> ModuleResponse
 toModuleResponse (Entity key val) = MkModuleResponse
-    { id = fromSqlKey key
-    , name = moduleName val
-    , abbrevation = moduleAbbrevation val
-    , semesterId = fromIntegral $ moduleSemesterId val
+    { module_id = fromSqlKey key
+    , module_name = moduleName val
+    , module_abbrevation = moduleAbbrevation val
+    , module_semesterId = fromIntegral $ moduleSemesterId val
     }
 
 -- Exam Response
 data ExamResponse = MkExamResponse
-    { id :: Int64
-    , name :: Text
-    , grade :: Double
-    , weight :: Double
-    , moduleId :: Int64
+    { exam_id :: Int64
+    , exam_name :: Text
+    , exam_grade :: Double
+    , exam_weight :: Double
+    , exam_moduleId :: Int64
     } deriving (Show, Generic)
 
 instance ToJSON ExamResponse
@@ -99,9 +99,9 @@ instance FromJSON ExamResponse
 
 toExamResponse :: Entity Exam -> ExamResponse
 toExamResponse (Entity key val) = MkExamResponse
-    { id = fromSqlKey key
-    , name = examName val
-    , grade = examGrade val
-    , weight = examWeight val
-    , moduleId = fromIntegral $ examModuleId val
+    { exam_id = fromSqlKey key
+    , exam_name = examName val
+    , exam_grade = examGrade val
+    , exam_weight = examWeight val
+    , exam_moduleId = fromIntegral $ examModuleId val
     }

@@ -29,7 +29,7 @@ semesterHandlers pool =
             Just semester -> return semester
             Nothing -> throwError err404
 
-    getModulesForSemesterHandler :: Int64 -> Handler [Module]
+    getModulesForSemesterHandler :: Int64 -> Handler [ModuleResponse]
     getModulesForSemesterHandler sid = liftIO $ getModulesForSemester pool sid
 
     createSemesterHandler :: Semester -> Handler SemesterResponse

@@ -17,7 +17,7 @@ import Shared.Models.Semester exposing (Semester)
 type Page =
     SemesterList SemesterList.Model
     | SemesterAdd SemesterAdd.Model
-    | SemesterDetail Int
+    | SemesterDetail SemesterDetail.Model
     | SemesterEdit SemesterEdit.Model
     | SemesterDelete SemesterDelete.Model
 
@@ -40,6 +40,7 @@ type Msg =
     HeaderMsg Header.Msg 
     | SemesterListMsg SemesterList.Msg
     | SemesterAddMsg SemesterAdd.Msg
+    | SemesterDetailMsg SemesterDetail.Msg
     | SemesterEditMsg SemesterEdit.Msg
     | SemesterDeleteMsg SemesterDelete.Msg
     | LinkClicked Browser.UrlRequest
@@ -98,11 +99,11 @@ init _ url key =
             )
 
         SemesterDetailRoute id ->
-            ( { header = header
-              , page = SemesterDetail id
-              , navKey = key
-              }
-            , Cmd.none
+            let
+                (detailModel, detailCmd) = SemesterDetail.init id
+            in
+            ( { header = header, page = SemesterDetail detailModel, navKey = key }
+            , Cmd.map SemesterDetailMsg detailCmd
             )
 
         SemesterEditRoute id ->
@@ -167,7 +168,6 @@ update msg model =
             )
 
         SemesterAddMsg (SemesterAdd.SubmitResult (Ok _)) ->
-            -- Navigate back to the semester list on success
             ( model, Nav.pushUrl model.navKey "/semesters" )
 
         SemesterAddMsg (SemesterAdd.SubmitResult (Err err)) ->
@@ -229,6 +229,19 @@ update msg model =
                 _ ->
                     (model, Cmd.none)
 
+        SemesterDetailMsg subMsg ->
+            case model.page of
+                SemesterDetail detailModel ->
+                    let
+                        (newModel, cmd) = SemesterDetail.update subMsg detailModel
+                    in
+                    ( { model | page = SemesterDetail newModel }
+                    , Cmd.map SemesterDetailMsg cmd
+                    )
+
+                _ ->
+                    (model, Cmd.none)
+
         LinkClicked req ->
             case req of
                 Browser.Internal url ->
@@ -259,7 +272,12 @@ update msg model =
                     ( { model | page = SemesterAdd SemesterAdd.init }, Cmd.none )
 
                 Just (SemesterDetailRoute id) ->
-                    ( { model | page = SemesterDetail id }, Cmd.none )
+                        let
+                            (detailModel, detailCmd) = SemesterDetail.init id
+                        in
+                        ( { model | page = SemesterDetail detailModel }
+                        , Cmd.map SemesterDetailMsg detailCmd
+                        )
 
                 Just (SemesterEditRoute id) ->
                     let
@@ -291,8 +309,8 @@ view model =
                     Html.map SemesterListMsg (SemesterList.view listModel)
                 SemesterAdd addModel ->
                     Html.map SemesterAddMsg (SemesterAdd.view addModel)
-                SemesterDetail id ->
-                    SemesterDetail.view id
+                SemesterDetail detailModel ->
+                    Html.map SemesterDetailMsg (SemesterDetail.view detailModel)
                 SemesterEdit editModel ->
                     Html.map SemesterEditMsg (SemesterEdit.view editModel)
                 SemesterDelete deleteModel ->

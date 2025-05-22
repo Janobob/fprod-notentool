@@ -15,3 +15,21 @@
 .semester-card:hover .d-hover-flex {
   display: flex;
 }
+
+.module-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+  position: relative;
+}
+
+.module-card:hover {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.module-card .d-hover-flex {
+  display: none;
+}
+
+.module-card:hover .d-hover-flex {
+  display: flex;
+}

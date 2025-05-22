@@ -3,28 +3,55 @@ module View.Pages.Semester.SemesterAdd exposing (Model, Msg(..), init, update, v
 import Html exposing (Html, button, div, h1, input, label, text)
 import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (onClick, onInput)
+import Shared.Models.Semester exposing (Semester)
+import Shared.Services.SemesterService as SemesterService
+import Http
 
 type Msg
     = NameChanged String
     | Submit
+    | SubmitResult (Result Http.Error Semester)
     | Cancel
 
 type alias Model =
-    { name : String }
+    { name : String
+    , isSubmitting : Bool
+    , error : Maybe String
+    }
 
 init : Model
 init =
-    { name = "" }
+    { name = ""
+    , isSubmitting = False
+    , error = Nothing
+    }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
     case msg of
         NameChanged newName ->
-            ( { model | name = newName }, Cmd.none )
+            ( { model | name = newName, error = Nothing }, Cmd.none )
 
         Submit ->
-            -- todo: send the new semester name to the backend
-            (model, Cmd.none)
+            let
+                newSemester =
+                    { id = 0 -- will be ignored by backend
+                    , name = model.name
+                    }
+            in
+            ( { model | isSubmitting = True, error = Nothing }
+            , SemesterService.create newSemester SubmitResult
+            )
+
+        SubmitResult result ->
+            case result of
+                Ok _ ->
+                    update Cancel model
+
+                Err _ ->
+                    ( { model | isSubmitting = False, error = Just "Failed to create semester." }
+                    , Cmd.none
+                    )
 
         Cancel ->
             (model, Cmd.none)
@@ -46,10 +73,21 @@ view model =
                         ]
                         []
                     ]
+                , case model.error of
+                    Just msg ->
+                        div [ class "text-danger mt-2" ] [ text msg ]
+
+                    Nothing ->
+                        text ""
                 ]
             , div [ class "card-footer d-flex justify-content-end gap-2" ]
                 [ button [ class "btn btn-secondary", onClick Cancel ] [ text "Cancel" ]
-                , button [ class "btn btn-primary", onClick Submit ] [ text "Create" ]
+                , button
+                    [ class "btn btn-primary"
+                    , onClick Submit
+                    , Html.Attributes.disabled model.isSubmitting
+                    ]
+                    [ text (if model.isSubmitting then "Creating..." else "Create") ]
                 ]
             ]
         ]

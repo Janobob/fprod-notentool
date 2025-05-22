@@ -166,6 +166,24 @@ update msg model =
             , Nav.pushUrl model.navKey "/semesters"
             )
 
+        SemesterAddMsg (SemesterAdd.SubmitResult (Ok _)) ->
+            -- Navigate back to the semester list on success
+            ( model, Nav.pushUrl model.navKey "/semesters" )
+
+        SemesterAddMsg (SemesterAdd.SubmitResult (Err err)) ->
+            -- Let the page handle the error
+            case model.page of
+                SemesterAdd addModel ->
+                    let
+                        (newModel, cmd) = SemesterAdd.update (SemesterAdd.SubmitResult (Err err)) addModel
+                    in
+                    ( { model | page = SemesterAdd newModel }
+                    , Cmd.map SemesterAddMsg cmd
+                    )
+
+                _ ->
+                    (model, Cmd.none)
+
         SemesterAddMsg addMsg ->
             case model.page of
                 SemesterAdd addModel ->

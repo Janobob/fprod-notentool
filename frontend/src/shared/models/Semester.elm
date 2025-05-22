@@ -18,4 +18,4 @@ decoder =
 encoder : Semester -> Value
 encoder semester =
     Encode.object
-        [ ("name", Encode.string semester.name) ]
+        [ ("semesterName", Encode.string semester.name) ]

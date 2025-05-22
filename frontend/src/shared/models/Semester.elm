@@ -12,8 +12,8 @@ type alias Semester =
 decoder : Decoder Semester
 decoder =
     Decode.map2 Semester
-        (Decode.field "semesterId" Decode.int)
-        (Decode.field "semesterName" Decode.string)
+        (Decode.field "semester_id" Decode.int)
+        (Decode.field "semester_name" Decode.string)
 
 encoder : Semester -> Value
 encoder semester =

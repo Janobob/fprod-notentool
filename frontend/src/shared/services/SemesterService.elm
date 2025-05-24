@@ -31,3 +31,34 @@ getModulesFromSemesterId semesterId toMsg =
         { url = baseUrl ++ "/" ++ String.fromInt semesterId ++ "/modules"
         , expect = Http.expectJson toMsg (Decode.list Module.decoder)
         }
+
+getById : Int -> (Result Http.Error Semester -> msg) -> Cmd msg
+getById id toMsg =
+    Http.get
+        { url = baseUrl ++ "/" ++ String.fromInt id
+        , expect = Http.expectJson toMsg Semester.decoder
+        }
+
+update : Int -> Semester -> (Result Http.Error Semester -> msg) -> Cmd msg
+update id semester toMsg =
+    Http.request
+        { method = "PUT"
+        , url = baseUrl ++ "/" ++ String.fromInt id
+        , body = Http.jsonBody (Semester.encoder semester)
+        , expect = Http.expectJson toMsg Semester.decoder
+        , headers = []
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+delete : Int -> (Result Http.Error () -> msg) -> Cmd msg
+delete id toMsg =
+    Http.request
+        { method = "DELETE"
+        , url = baseUrl ++ "/" ++ String.fromInt id
+        , body = Http.emptyBody
+        , expect = Http.expectWhatever toMsg
+        , headers = []
+        , timeout = Nothing
+        , tracker = Nothing
+        }

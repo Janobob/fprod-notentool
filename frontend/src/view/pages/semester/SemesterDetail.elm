@@ -1,6 +1,6 @@
 module View.Pages.Semester.SemesterDetail exposing (Model, Msg(..), init, update, view)
 
-import Html exposing (Html, button, div, h1, text, ul, li, p, h5)
+import Html exposing (Html, button, div, h1, h2, text, ul, li, p, h5)
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Http
@@ -59,7 +59,8 @@ view model =
                             [ div [ class "alert alert-danger" ] [ text msg ] ]
 
                         Nothing ->
-                            [ div [ class "row g-3" ]
+                            [ h2 [ class "mb-4" ] [ text "Module:" ]
+                            , div [ class "row g-3" ]
                                 (List.map moduleCard model.modules)
                             ]
                )

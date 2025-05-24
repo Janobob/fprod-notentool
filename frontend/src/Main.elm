@@ -216,6 +216,9 @@ update msg model =
         SemesterDeleteMsg SemesterDelete.Cancel ->
             (model, Nav.pushUrl model.navKey "/semesters")
 
+        SemesterDeleteMsg (SemesterDelete.SemesterDeleted (Ok _)) ->
+            (model, Nav.pushUrl model.navKey "/semesters")
+
         SemesterDeleteMsg subMsg ->
             case model.page of
                 SemesterDelete deleteModel ->

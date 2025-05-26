@@ -6,10 +6,14 @@ import Html.Events exposing (onClick)
 import Http
 import Shared.Models.Module exposing (Module)
 import Shared.Models.Exam exposing (Exam)
+import Shared.Models.Semester exposing (Semester)
 import Shared.Services.SemesterService as SemesterService
+import Shared.Services.ModuleService as ModuleService
 import Shared.Services.ExamService as ExamService
 import Dict exposing (Dict)
 import Shared.Services.RoundService as Round
+import View.Pages.Module.ModuleEdit as ModuleEdit
+import View.Pages.Module.ModuleAdd as ModuleAdd
 
 type alias ModuleWithExams =
     { module_ : Module
@@ -23,6 +27,8 @@ type alias Model =
     , modules : List ModuleWithExams
     , loading : Bool
     , error : Maybe String
+    , editingModule : Maybe ModuleEdit.Model
+    , addingModule : Maybe ModuleAdd.Model
     }
 
 type Msg
@@ -31,10 +37,20 @@ type Msg
     | NavigateToModuleDetail Int
     | EditModule Int
     | DeleteModule Int
+    | ModuleDeleted Int (Result Http.Error ())
+    | ModuleEditMsg ModuleEdit.Msg
+    | AddModule
+    | ModuleAddMsg ModuleAdd.Msg
 
 init : Int -> (Model, Cmd Msg)
 init semesterId =
-    ( { semesterId = semesterId, modules = [], loading = True, error = Nothing }
+    ( { semesterId = semesterId
+      , modules = []
+      , loading = True
+      , error = Nothing
+      , editingModule = Nothing
+      , addingModule = Nothing
+      }
     , SemesterService.getModulesFromSemesterId semesterId ModulesLoaded
     )
 
@@ -79,11 +95,78 @@ update msg model =
         NavigateToModuleDetail id ->
             (model, Cmd.none)
     
-        EditModule id ->
-            (model, Cmd.none)
+        EditModule moduleId ->
+            let
+                (editModel, editCmd) = ModuleEdit.init moduleId
+            in
+            ( { model | editingModule = Just editModel, addingModule = Nothing }
+            , Cmd.map ModuleEditMsg editCmd
+            )
+
+        ModuleEditMsg subMsg ->
+            case model.editingModule of
+                Just editModel ->
+                    let
+                        (newEditModel, editCmd) = ModuleEdit.update subMsg editModel
+                    in
+                    case subMsg of
+                        ModuleEdit.Cancel ->
+                            ( { model | editingModule = Nothing }, Cmd.none )
+
+                        ModuleEdit.ModuleUpdated (Ok _) ->
+                            ( { model | editingModule = Nothing, loading = True }
+                            , SemesterService.getModulesFromSemesterId model.semesterId ModulesLoaded
+                            )
+
+                        _ ->
+                            ( { model | editingModule = Just newEditModel }
+                            , Cmd.map ModuleEditMsg editCmd
+                            )
+                Nothing ->
+                    (model, Cmd.none)
 
         DeleteModule id ->
-            (model, Cmd.none)
+            (model, ModuleService.delete id (ModuleDeleted id))
+
+        ModuleDeleted id (Ok _) ->
+            let
+                filteredModules = List.filter (\mwe -> mwe.module_.id /= id) model.modules
+            in
+            ( { model | modules = filteredModules }
+            , Cmd.none
+            )
+
+        ModuleDeleted _ (Err _) ->
+            ( { model | error = Just "Löschen des Moduls fehlgeschlagen." }
+            , Cmd.none
+            )
+
+        AddModule ->
+            ( { model | addingModule = Just (ModuleAdd.init model.semesterId), editingModule = Nothing }
+            , Cmd.none
+            )
+
+        ModuleAddMsg subMsg ->
+            case model.addingModule of
+                Just addModel ->
+                    let
+                        (newAddModel, addCmd) = ModuleAdd.update subMsg addModel
+                    in
+                    case subMsg of
+                        ModuleAdd.Cancel ->
+                            ( { model | addingModule = Nothing }, Cmd.none )
+
+                        ModuleAdd.SubmitResult (Ok _) ->
+                            ( { model | addingModule = Nothing, loading = True }
+                            , SemesterService.getModulesFromSemesterId model.semesterId ModulesLoaded
+                            )
+
+                        _ ->
+                            ( { model | addingModule = Just newAddModel }
+                            , Cmd.map ModuleAddMsg addCmd
+                            )
+                Nothing ->
+                    (model, Cmd.none)
 
 calculateModuleAverage : List Exam -> Float
 calculateModuleAverage exams =
@@ -119,24 +202,41 @@ formatGrade grade =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container pt-4" ]
-        ([ h1 [ class "mb-4" ] [ text ("Semester Detail: " ++ String.fromInt model.semesterId) ] ]
-            ++ (if model.loading then
-                    [ div [ class "text-center" ] [ text "Loading modules..." ] ]
+    case model.editingModule of
+        Just editModel ->
+            Html.map ModuleEditMsg (ModuleEdit.view editModel)
+        
+        Nothing ->
+            case model.addingModule of
+                Just addModel ->
+                    Html.map ModuleAddMsg (ModuleAdd.view addModel)
+                
+                Nothing ->
+                    div [ class "container pt-4" ]
+                        ([ h1 [ class "mb-4" ] [ text ("Semester Detail: " ++ String.fromInt model.semesterId) ] ]
+                            ++ (if model.loading then
+                                    [ div [ class "text-center" ] [ text "Loading modules..." ] ]
 
-                else
-                    case model.error of
-                        Just msg ->
-                            [ div [ class "alert alert-danger" ] [ text msg ] ]
+                                else
+                                    case model.error of
+                                        Just msg ->
+                                            [ div [ class "alert alert-danger" ] [ text msg ] ]
 
-                        Nothing ->
-                            [ semesterSummary model.modules
-                            ,h2 [ class "mt-4" ] [ text "Module:" ]
-                            , div [ class "row g-3" ]
-                                (List.map moduleCard model.modules)
-                            ]
-               )
-        )
+                                        Nothing ->
+                                            [ semesterSummary model.modules
+                                            , div [ class "d-flex justify-content-between align-items-center mt-4 mb-3" ]
+                                                [ h2 [ class "mb-0" ] [ text "Module:" ]
+                                                , button 
+                                                    [ class "btn btn-primary" 
+                                                    , onClick AddModule
+                                                    ] 
+                                                    [ text "Add Module" ]
+                                                ]
+                                            , div [ class "row g-3" ]
+                                                (List.map moduleCard model.modules)
+                                            ]
+                               )
+                        )
 
 moduleCard : ModuleWithExams -> Html Msg
 moduleCard moduleWithExams =

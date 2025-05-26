@@ -23,9 +23,9 @@ decoder =
 encoder : Exam -> Value
 encoder exam =
     Encode.object
-        [ ("exam_id", Encode.int exam.id)
-        , ("exam_name", Encode.string exam.name)
-        , ("exam_grade", Encode.float exam.grade)
-        , ("exam_weight", Encode.float exam.weight)
-        , ("exam_moduleId", Encode.int exam.moduleId)
+        [ ("examId", Encode.int exam.id)
+        , ("examName", Encode.string exam.name)
+        , ("examGrade", Encode.float exam.grade)
+        , ("examWeight", Encode.float exam.weight)
+        , ("examModuleId", Encode.int exam.moduleId)
         ]

@@ -21,8 +21,8 @@ decoder =
 encoder : Module -> Value
 encoder m =
     Encode.object
-        [ ("module_id", Encode.int m.id)
-        , ("module_name", Encode.string m.name)
-        , ("module_abbrevation", Encode.string m.abbreviation)
-        , ("module_semesterId", Encode.int m.semesterId)
+        [ ("moduleId", Encode.int m.id)
+        , ("moduleName", Encode.string m.name)
+        , ("moduleAbbrevation", Encode.string m.abbreviation)
+        , ("moduleSemesterId", Encode.int m.semesterId)
         ]

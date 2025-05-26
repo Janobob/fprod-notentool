@@ -35,7 +35,7 @@ update msg model =
         Submit ->
             let
                 newSemester =
-                    { id = 0 -- will be ignored by backend
+                    { id = 0
                     , name = model.name
                     }
             in

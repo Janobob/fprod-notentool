@@ -12,6 +12,8 @@ import Shared.Services.RoundService as Round
 import Dict exposing (Dict)
 import Browser.Navigation as Nav
 import Json.Decode as Decode
+import View.Pages.Exam.ExamAdd as ExamAdd
+import View.Pages.Exam.ExamEdit as ExamEdit
 
 type alias Model =
     { moduleId : Int
@@ -20,6 +22,8 @@ type alias Model =
     , loading : Bool
     , error : Maybe String
     , navKey : Nav.Key
+    , editingExam : Maybe ExamEdit.Model
+    , addingExam : Maybe ExamAdd.Model
     }
 
 type Msg
@@ -29,6 +33,8 @@ type Msg
     | DeleteExam Int
     | ExamDeleted Int (Result Http.Error ())
     | AddExam
+    | ExamEditMsg ExamEdit.Msg
+    | ExamAddMsg ExamAdd.Msg
 
 init : Int -> Nav.Key -> ( Model, Cmd Msg )
 init moduleId key =
@@ -38,6 +44,8 @@ init moduleId key =
       , loading = True
       , error = Nothing
       , navKey = key
+      , editingExam = Nothing
+      , addingExam = Nothing
       }
     , Cmd.batch
         [ ModuleService.getById moduleId ModuleLoaded
@@ -64,26 +72,79 @@ update msg model =
                 Err _ ->
                     ( { model | loading = False, error = Just "Failed to load exams" }, Cmd.none )
 
-        EditExam id ->
-            -- TODO: Implement exam editing
-            (model, Cmd.none)
-
-        DeleteExam id ->
-            (model, ExamService.delete id (ExamDeleted id))
-
-        ExamDeleted id (Ok _) ->
+        EditExam examId ->
             let
-                filteredExams = List.filter (\exam -> exam.id /= id) model.exams
+                (editModel, editCmd) = ExamEdit.init model.moduleId examId
             in
-            ( { model | exams = filteredExams }, Cmd.none )
+            ( { model | editingExam = Just editModel, addingExam = Nothing }
+            , Cmd.map ExamEditMsg editCmd
+            )
+
+        DeleteExam examId ->
+            (model, ExamService.delete examId (ExamDeleted examId))
+
+        ExamDeleted examId (Ok _) ->
+            ( { model | exams = List.filter (\e -> e.id /= examId) model.exams }
+            , Cmd.none
+            )
 
         ExamDeleted _ (Err _) ->
-            ( { model | error = Just "Löschen der Prüfung fehlgeschlagen." }, Cmd.none )
+            ( { model | error = Just "Löschen der Prüfung fehlgeschlagen." }
+            , Cmd.none
+            )
 
         AddExam ->
-            -- TODO: Implement exam adding
-            (model, Cmd.none)
+            ( { model | addingExam = Just (ExamAdd.init model.moduleId), editingExam = Nothing }
+            , Cmd.none
+            )
 
+        ExamEditMsg subMsg ->
+            case model.editingExam of
+                Just editModel ->
+                    let
+                        (newEditModel, editCmd) = ExamEdit.update subMsg editModel
+                    in
+                    case subMsg of
+                        ExamEdit.Cancel ->
+                            ( { model | editingExam = Nothing }, Cmd.none )
+
+                        ExamEdit.ExamUpdated (Ok exam) ->
+                            ( { model 
+                              | editingExam = Nothing
+                              , exams = List.map (\e -> if e.id == exam.id then exam else e) model.exams 
+                              }
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            ( { model | editingExam = Just newEditModel }
+                            , Cmd.map ExamEditMsg editCmd
+                            )
+
+                Nothing ->
+                    (model, Cmd.none)
+
+        ExamAddMsg subMsg ->
+            case model.addingExam of
+                Just addModel ->
+                    let
+                        (newAddModel, addCmd) = ExamAdd.update subMsg addModel
+                    in
+                    case subMsg of
+                        ExamAdd.Cancel ->
+                            ( { model | addingExam = Nothing }, Cmd.none )
+
+                        ExamAdd.ExamAdded (Ok _) ->
+                            ( { model | addingExam = Nothing, loading = True }
+                            , ExamService.getExamsFromModuleId model.moduleId ExamsLoaded
+                            )
+
+                        _ ->
+                            ( { model | addingExam = Just newAddModel }
+                            , Cmd.map ExamAddMsg addCmd
+                            )
+                Nothing ->
+                    (model, Cmd.none)
 
 calculateModuleAverage : List Exam -> Float
 calculateModuleAverage exams =
@@ -108,73 +169,68 @@ formatGrade grade =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container pt-4" ]
-        ([ h1 [ class "mb-4" ] [ text ("Modul Detail: " ++ String.fromInt model.moduleId) ] ]
-            ++ (if model.loading then
-                    [ div [ class "text-center" ] [ text "Loading module..." ] ]
-                else
-                    case model.error of
-                        Just msg ->
-                            [ div [ class "alert alert-danger" ] [ text msg ] ]
-                        Nothing ->
-                            [ moduleSummary model
-                            , div [ class "d-flex justify-content-between align-items-center mt-4 mb-3" ]
-                                [ h2 [ class "mb-0" ] [ text "Prüfungen:" ]
-                                , button
-                                    [ class "btn btn-primary"
-                                    , onClick AddExam
-                                    ]
-                                    [ text "Add Exam" ]
-                                ]
-                            , div [ class "row g-3" ]
-                                (List.map examCard model.exams)
-                            ]
-                )
-        )
+    case model.editingExam of
+        Just editModel ->
+            Html.map ExamEditMsg (ExamEdit.view editModel)
+        
+        Nothing ->
+            case model.addingExam of
+                Just addModel ->
+                    Html.map ExamAddMsg (ExamAdd.view addModel)
+                
+                Nothing ->
+                    div [ class "container pt-4" ]
+                        ([ h1 [ class "mb-4" ] [ text ("Modul Detail: " ++ String.fromInt model.moduleId) ] ]
+                            ++ (if model.loading then
+                                    [ div [ class "text-center" ] [ text "Loading module..." ] ]
+                                else
+                                    case model.error of
+                                        Just msg ->
+                                            [ div [ class "alert alert-danger" ] [ text msg ] ]
+                                        Nothing ->
+                                            [ moduleSummary model
+                                            , div [ class "d-flex justify-content-between align-items-center mt-4 mb-3" ]
+                                                [ h2 [ class "mb-0" ] [ text "Prüfungen:" ]
+                                                , button
+                                                    [ class "btn btn-primary"
+                                                    , onClick AddExam
+                                                    ]
+                                                    [ text "Add Exam" ]
+                                                ]
+                                            , div [ class "row g-3" ]
+                                                (List.map examCard model.exams)
+                                            ]
+                                )
+                        )
 
 moduleSummary : Model -> Html Msg
 moduleSummary model =
-    case model.moduleData of
-        Just m ->
-            let
-                average = calculateModuleAverage model.exams
-            in
-            div [ class "mt-5 p-4 bg-light rounded" ]
-                [ h2 [ class "mb-3" ] [ text "Modul Zusammenfassung" ]
-                , div [ class "row" ]
-                    [ div [ class "col-md-6" ]
-                        [ h3 [ class "h5" ] [ text "Modul Übersicht:" ]
-                        , table [ class "table" ]
-                            [ thead []
-                                [ tr []
-                                    [ th [] [ text "Kürzel" ]
-                                    , th [] [ text "Name" ]
-                                    , th [] [ text "ID" ]
-                                    ]
-                                ]
-                            , tbody []
-                                [ tr []
-                                    [ td [] [ text m.abbreviation ]
-                                    , td [] [ text m.name ]
-                                    , td [] [ text (String.fromInt m.id) ]
-                                    ]
-                                ]
-                            ]
+    let
+        average = calculateModuleAverage model.exams
+    in
+    div [ class "mt-5 p-4 bg-light rounded" ]
+        [ div [ class "card-body" ]
+            [ h2 [ class "card-title h4" ] [ text "Modul Übersicht" ]
+            , div [ class "row" ]
+                [ div [ class "col-md-6" ]
+                    [ p [ class "mb-2" ] 
+                        [ text "Durchschnitt: "
+                        , span 
+                            [ class "fw-bold"
+                            , style "color" (if average >= 4.0 then "green" else "red")
+                            ] 
+                            [ text (formatGrade average) ]
                         ]
-                    , div [ class "col-md-6" ]
-                        [ div [ class "p-4 border rounded text-center" ]
-                            [ h3 [ class "h5 mb-3" ] [ text "Modul Durchschnitt:" ]
-                            , span
-                                [ class "display-4"
-                                , style "color" (if average >= 4.0 then "green" else "red")
-                                ]
-                                [ text (formatGrade average) ]
-                            ]
+                    ]
+                , div [ class "col-md-6" ]
+                    [ p [ class "mb-2" ] 
+                        [ text "Anzahl Prüfungen: "
+                        , span [ class "fw-bold" ] [ text (String.fromInt (List.length model.exams)) ]
                         ]
                     ]
                 ]
-        Nothing ->
-            text ""
+            ]
+        ]
 
 examCard : Exam -> Html Msg
 examCard exam =
@@ -184,21 +240,26 @@ examCard exam =
                 [ h5 [ class "card-title" ] [ text exam.name ]
                 , p [ class "card-text" ]
                     [ text "Note: "
-                    , span [ class "fw-bold" ] [ text (formatGrade exam.grade) ]
-                    , text (" | Gewichtung: " ++ String.fromFloat exam.weight ++ "%")
+                    , span 
+                        [ class "fw-bold"
+                        , style "color" (if exam.grade >= 4.0 then "green" else "red")
+                        ] 
+                        [ text (formatGrade exam.grade) ]
                     ]
+                , p [ class "card-text" ] 
+                    [ text ("Gewichtung: " ++ String.fromFloat exam.weight ++ "%") ]
                 , div [ class "position-absolute top-0 end-0 p-2 d-hover-flex gap-2" ]
                     [ button
                         [ class "btn btn-sm btn-outline-secondary me-2"
-                        , stopPropagationOn "click" (Decode.succeed ( EditExam exam.id, True ))
+                        , onClick (EditExam exam.id)
                         ]
                         [ text "Edit" ]
                     , button
                         [ class "btn btn-sm btn-outline-danger"
-                        , stopPropagationOn "click" (Decode.succeed ( DeleteExam exam.id, True ))
+                        , onClick (DeleteExam exam.id)
                         ]
                         [ text "Delete" ]
                     ]
                 ]
             ]
-        ] 
+        ]

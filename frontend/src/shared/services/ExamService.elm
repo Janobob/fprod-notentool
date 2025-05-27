@@ -26,7 +26,7 @@ getById id toMsg =
 create : Int -> Exam -> (Result Http.Error Exam -> msg) -> Cmd msg
 create moduleId exam toMsg =
     Http.post
-        { url = baseUrl ++ "/modules/" ++ String.fromInt moduleId ++ "/exams"
+        { url = baseUrl ++ "/exams"
         , body = Http.jsonBody (encoder exam)
         , expect = Http.expectJson toMsg decoder
         }

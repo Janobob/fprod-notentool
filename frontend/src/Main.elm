@@ -12,6 +12,7 @@ import View.Pages.Semester.SemesterAdd as SemesterAdd
 import View.Pages.Semester.SemesterDetail as SemesterDetail
 import View.Pages.Semester.SemesterEdit as SemesterEdit
 import View.Pages.Semester.SemesterDelete as SemesterDelete
+import View.Pages.Module.ModuleDetail as ModuleDetail
 import Shared.Models.Semester exposing (Semester)
 
 type Page =
@@ -20,6 +21,7 @@ type Page =
     | SemesterDetail SemesterDetail.Model
     | SemesterEdit SemesterEdit.Model
     | SemesterDelete SemesterDelete.Model
+    | ModuleDetail ModuleDetail.Model
 
 type Route =
     HomeRoute
@@ -28,6 +30,7 @@ type Route =
     | SemesterDetailRoute Int
     | SemesterEditRoute Int
     | SemesterDeleteRoute Int
+    | ModuleDetailRoute Int
 
 type alias Model =
     { 
@@ -43,6 +46,7 @@ type Msg =
     | SemesterDetailMsg SemesterDetail.Msg
     | SemesterEditMsg SemesterEdit.Msg
     | SemesterDeleteMsg SemesterDelete.Msg
+    | ModuleDetailMsg ModuleDetail.Msg
     | LinkClicked Browser.UrlRequest
     | UrlChanged Url
 
@@ -54,6 +58,7 @@ routeParser =
         , s "semesters" </> s "edit" </> int |> map SemesterEditRoute
         , s "semesters" </> s "delete" </> int |> map SemesterDeleteRoute
         , s "semesters" </> int |> map SemesterDetailRoute
+        , s "modules" </> int |> map ModuleDetailRoute
         , top |> map HomeRoute
         ]
 
@@ -100,7 +105,7 @@ init _ url key =
 
         SemesterDetailRoute id ->
             let
-                (detailModel, detailCmd) = SemesterDetail.init id
+                (detailModel, detailCmd) = SemesterDetail.init id key
             in
             ( { header = header, page = SemesterDetail detailModel, navKey = key }
             , Cmd.map SemesterDetailMsg detailCmd
@@ -120,6 +125,14 @@ init _ url key =
             in
             ( { header = header, page = SemesterDelete deleteModel, navKey = key }
             , Cmd.map SemesterDeleteMsg deleteCmd
+            )
+
+        ModuleDetailRoute id ->
+            let
+                (moduleDetailModel, moduleDetailCmd) = ModuleDetail.init id key
+            in
+            ( { header = header, page = ModuleDetail moduleDetailModel, navKey = key }
+            , Cmd.map ModuleDetailMsg moduleDetailCmd
             )
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -245,6 +258,19 @@ update msg model =
                 _ ->
                     (model, Cmd.none)
 
+        ModuleDetailMsg subMsg ->
+            case model.page of
+                ModuleDetail detailModel ->
+                    let
+                        (newModel, cmd) = ModuleDetail.update subMsg detailModel
+                    in
+                    ( { model | page = ModuleDetail newModel }
+                    , Cmd.map ModuleDetailMsg cmd
+                    )
+
+                _ ->
+                    (model, Cmd.none)
+
         LinkClicked req ->
             case req of
                 Browser.Internal url ->
@@ -275,12 +301,12 @@ update msg model =
                     ( { model | page = SemesterAdd SemesterAdd.init }, Cmd.none )
 
                 Just (SemesterDetailRoute id) ->
-                        let
-                            (detailModel, detailCmd) = SemesterDetail.init id
-                        in
-                        ( { model | page = SemesterDetail detailModel }
-                        , Cmd.map SemesterDetailMsg detailCmd
-                        )
+                    let
+                        (detailModel, detailCmd) = SemesterDetail.init id model.navKey
+                    in
+                    ( { model | page = SemesterDetail detailModel }
+                    , Cmd.map SemesterDetailMsg detailCmd
+                    )
 
                 Just (SemesterEditRoute id) ->
                     let
@@ -296,6 +322,14 @@ update msg model =
                     in
                     ( { model | page = SemesterDelete deleteModel }
                     , Cmd.map SemesterDeleteMsg deleteCmd
+                    )
+
+                Just (ModuleDetailRoute id) ->
+                    let
+                        (moduleDetailModel, moduleDetailCmd) = ModuleDetail.init id model.navKey
+                    in
+                    ( { model | page = ModuleDetail moduleDetailModel }
+                    , Cmd.map ModuleDetailMsg moduleDetailCmd
                     )
 
                 Nothing ->
@@ -318,6 +352,8 @@ view model =
                     Html.map SemesterEditMsg (SemesterEdit.view editModel)
                 SemesterDelete deleteModel ->
                     Html.map SemesterDeleteMsg (SemesterDelete.view deleteModel)
+                ModuleDetail detailModel ->
+                    Html.map ModuleDetailMsg (ModuleDetail.view detailModel)
             ]
         ]
     }

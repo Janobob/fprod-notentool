@@ -2,7 +2,7 @@ module View.Pages.Semester.SemesterDetail exposing (Model, Msg(..), init, update
 
 import Html exposing (Html, button, div, h1, h2, h3, text, ul, li, p, h5, span, table, thead, tbody, tr, th, td)
 import Html.Attributes exposing (class, style)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, stopPropagationOn)
 import Http
 import Shared.Models.Module exposing (Module)
 import Shared.Models.Exam exposing (Exam)
@@ -14,6 +14,8 @@ import Dict exposing (Dict)
 import Shared.Services.RoundService as Round
 import View.Pages.Module.ModuleEdit as ModuleEdit
 import View.Pages.Module.ModuleAdd as ModuleAdd
+import Browser.Navigation as Nav
+import Json.Decode as Decode
 
 type alias ModuleWithExams =
     { module_ : Module
@@ -29,6 +31,7 @@ type alias Model =
     , error : Maybe String
     , editingModule : Maybe ModuleEdit.Model
     , addingModule : Maybe ModuleAdd.Model
+    , navKey : Nav.Key
     }
 
 type Msg
@@ -42,14 +45,15 @@ type Msg
     | AddModule
     | ModuleAddMsg ModuleAdd.Msg
 
-init : Int -> (Model, Cmd Msg)
-init semesterId =
+init : Int -> Nav.Key -> (Model, Cmd Msg)
+init semesterId navKey =
     ( { semesterId = semesterId
       , modules = []
       , loading = True
       , error = Nothing
       , editingModule = Nothing
       , addingModule = Nothing
+      , navKey = navKey
       }
     , SemesterService.getModulesFromSemesterId semesterId ModulesLoaded
     )
@@ -93,7 +97,7 @@ update msg model =
             ( { model | modules = List.map updateModule model.modules }, Cmd.none )
 
         NavigateToModuleDetail id ->
-            (model, Cmd.none)
+            (model, Nav.pushUrl model.navKey ("/modules/" ++ String.fromInt id))
     
         EditModule moduleId ->
             let
@@ -270,14 +274,14 @@ moduleCard moduleWithExams =
                   else
                     text ""
                 , div [ class "position-absolute top-0 end-0 p-2 d-hover-flex gap-2" ]
-                    [ button
+                    [ button 
                         [ class "btn btn-sm btn-outline-secondary"
-                        , onClick (EditModule module_.id)
+                        , stopPropagationOn "click" (Decode.succeed ( EditModule module_.id, True ))
                         ]
                         [ text "Edit" ]
-                    , button
+                    , button 
                         [ class "btn btn-sm btn-outline-danger"
-                        , onClick (DeleteModule module_.id)
+                        , stopPropagationOn "click" (Decode.succeed ( DeleteModule module_.id, True ))
                         ]
                         [ text "Delete" ]
                     ]

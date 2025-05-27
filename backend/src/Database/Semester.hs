@@ -47,6 +47,9 @@ updateSemester pool sid semester = runDB pool $ do
 deleteSemester :: DbPool -> Int64 -> IO ()
 deleteSemester pool sid = runDB pool $ do
     let semesterKey = toSqlKey sid :: Key Semester
+    moduleIds <- selectList [ModuleSemesterId ==. fromIntegral sid] [] >>= return . map (fromSqlKey . entityKey)
+    mapM_ (\mid -> deleteWhere [ExamModuleId ==. fromIntegral mid]) moduleIds
+    deleteWhere [ModuleSemesterId ==. fromIntegral sid]
     delete semesterKey
 
 getModulesForSemester :: DbPool -> Int64 -> IO [ModuleResponse]

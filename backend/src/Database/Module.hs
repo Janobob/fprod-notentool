@@ -54,6 +54,7 @@ updateModule pool mid module' = runDB pool $ do
 deleteModule :: DbPool -> Int64 -> IO ()
 deleteModule pool mid = runDB pool $ do
     let moduleKey = toSqlKey mid :: Key Module
+    deleteWhere [ExamModuleId ==. fromIntegral mid]
     delete moduleKey
 
 getExamsForModule :: DbPool -> Int64 -> IO [ExamResponse]

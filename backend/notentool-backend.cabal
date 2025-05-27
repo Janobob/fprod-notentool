@@ -62,6 +62,14 @@ executable notentool-backend
         Models
         Api
         Database
+        Api.Handlers.Semester
+        Api.Handlers.Module
+        Api.Handlers.Exam
+        Database.Core
+        Database.Semester
+        Database.Module
+        Database.Exam
+        Api.Types
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

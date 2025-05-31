@@ -294,7 +294,7 @@ examRow exam =
     tr []
         [ td [] [ text exam.name ]
         , td [] [ text (String.fromFloat exam.grade) ]
-        , td [] [ text (String.fromFloat exam.weight) ]
+        , td [] [ text (String.fromFloat exam.weight ++ "%") ]
         ]
 
 semesterSummary : List ModuleWithExams -> Html Msg

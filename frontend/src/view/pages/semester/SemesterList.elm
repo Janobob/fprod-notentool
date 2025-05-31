@@ -96,8 +96,6 @@ semesterCard semester =
         [ div [ class "card semester-card", onClick (NavigateToDetail semester.id) ]
             [ div [ class "card-body position-relative" ]
                 [ h5 [ class "card-title" ] [ text semester.name ]
-                , p [ class "card-text" ] [ text "Gesamtnote: - (todo)" ]
-                , p [ class "card-text" ] [ text "Module: - (todo)" ]
                 , div [ class "position-absolute top-0 end-0 p-2 d-hover-flex gap-2" ]
                     [ button 
                         [ class "btn btn-sm btn-outline-secondary"
